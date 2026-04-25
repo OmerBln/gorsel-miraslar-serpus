@@ -32,7 +32,8 @@ Projenin çalışması için gerekli kütüphaneleri kurun:
 pip install -r requirements.txt
 ```
 
-### 3. Veri Setini Hazırlayın: Projenin ana dizininde bir `data` klasörü oluşturun ve görsellerinizi sınıf isimlerine göre aşağıdaki yapıda yerleştirin:
+### 3. Veri Setini Hazırlayın
+Projenin ana dizininde bir `data` klasörü oluşturun ve görsellerinizi sınıf isimlerine göre aşağıdaki yapıda yerleştirin:
    ```text
    data/
    ├── train/

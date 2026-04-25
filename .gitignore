@@ -1,0 +1,19 @@
+# Ortamlar
+env/
+venv/
+.env
+
+# IDE ve Editör ayarları
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Büyük Boyutlu Dosyalar ve Modeller
+*.pth
+*.pt
+best_model_resnet101_epoch_28_acc_77.78.pth
+
+# Veri setleri
+data/
+datasets/

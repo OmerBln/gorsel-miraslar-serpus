@@ -44,7 +44,7 @@ pip install -r requirements.txt
        ├── Fes/
        └── ... 
 ```
-**Veri Seti İndirme Linki: **
+**Veri Seti İndirme Linki Kaggle'a Veriler Yüklendiğinde Paylaşılacak **
 
 
 ### 4. Modeli Kendi Ortamınızda Eğitin (ÖNEMLİ ⚠️)

@@ -46,17 +46,6 @@ Bu komut, varsayılan web tarayıcınızda otomatik olarak projeyi açacaktır (
 
 ---
 
-## 📂 Proje Yapısı
-```text
-gorsel-miraslar-serpus/
-├── resnet101.py          # Modeli eğitmek ve tanımlamak için kullanılan PyTorch kodları
-├── streamlitv2.py        # Streamlit web arayüzü ana uygulama dosyası
-├── serpus_content.json   # Başlık türleri hakkında tarihi bilgilerin bulunduğu veritabanı
-├── tavsiye.txt           # Modelin gelişimi için notlar ve tavsiyeler
-├── requirements.txt      # Gerekli kütüphaneler
-├── .gitignore            # Git takibinden dışlanan dosyalar (ör. büyük model dosyaları)
-└── [Görsel Dosyaları]    # Uygulama içinde kullanılan örnek görseller ve arayüz elemanları
-```
 
 ## 🤝 Katkıda Bulunma
 Bu proje tarihi mirasımızı teknoloji ile buluşturmayı amaçlamaktadır. Veri setini genişletmek veya kodlara katkıda bulunmak için Pull Request gönderebilirsiniz.

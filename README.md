@@ -5,7 +5,7 @@ Bu proje, PyTorch (ResNet101) ve Streamlit kullanılarak geliştirilmiş, Osmanl
 ## 🌟 Özellikler
 - **Derin Öğrenme Modeli:** Transfer learning kullanılarak eğitilmiş ResNet101 mimarisi.
 - **Kullanıcı Dostu Arayüz:** Streamlit ile geliştirilmiş, anında sonuç veren hızlı ve etkileşimli web arayüzü.
-- **Tarihi Bilgi Entegrasyonu:** Model sınıflandırma yaptıktan sonra, tespit edilen başlık türü hakkında (`serpus_content.json` dosyasından çekilen) detaylı tarihi bilgiler sunar.
+- **Tarihi Bilgi Entegrasyonu:** Model sınıflandırma yaptıktan sonra, tespit edilen başlık türü hakkında (`serpus_content.json` dosyasından çekilen) kısa tarihi bilgiler sunar.
 - **Bilinmeyen Görsel Tespiti:** Sistemin güven (confidence) skoru düşükse (belirlenen eşik değerinin altındaysa), görselin bir Osmanlı başlığı olmadığını anlayarak kullanıcıyı uyarır.
 
 ## 🗂 Sınıflandırılan Başlık Türleri (Sınıflar)
@@ -32,12 +32,31 @@ Projenin çalışması için gerekli kütüphaneleri kurun:
 pip install -r requirements.txt
 ```
 
-### 3. Model Ağırlıklarını İndirin (ÖNEMLİ ⚠️)
-Model dosyasının boyutu (yaklaşık 500 MB) GitHub'ın sınırlarını aştığı için bu depoya eklenmemiştir. Uygulamanın çalışması için eğitimli **`.pth`** model dosyanızı (`best_model_resnet101_epoch_21_acc_83.33.pth` veya `best_model_resnet101_epoch_28_acc_77.78.pth`) projenin ana klasörüne (bu klasöre) manuel olarak eklemeniz gerekmektedir.
+### 3. Veri Setini Hazırlayın: Projenin ana dizininde bir `data` klasörü oluşturun ve görsellerinizi sınıf isimlerine göre aşağıdaki yapıda yerleştirin:
+   ```text
+   data/
+   ├── train/
+   │   ├── Börk/
+   │   ├── Fes/
+   │   └── ...
+   └── validation/
+       ├── Börk/
+       ├── Fes/
+       └── ... 
+```
+**Veri Seti İndirme Linki: **
 
-*(Not: Eğer bir indirme linkiniz varsa, modeli buradan indirin: `[Model Linki Buraya Gelebilir]`)*
 
-### 4. Uygulamayı Başlatın
+### 4. Modeli Kendi Ortamınızda Eğitin (ÖNEMLİ ⚠️)
+GitHub dosya boyutu sınırları nedeniyle önceden eğitilmiş model ağırlıkları (`.pth` dosyası) bu depoda bulunmamaktadır.
+Arayüzü çalıştırmadan önce `resnet101.py` dosyasını kullanarak modeli kendi ortamınızda eğitmeniz gerekmektedir:
+
+
+### 5.Uygulamayı Güncelleyin
+Eğitim başarıyla tamamlandığında, ana dizinde best_model_resnet101_epoch_X_acc_Y.pth formatında bir dosya oluşacaktır. streamlitv2.py dosyasını açın ve MODEL_PATH değişkenini bu yeni dosyanın adıyla güncelleyin.
+
+
+### 6. Uygulamayı Başlatın
 Tüm adımları tamamladıktan sonra, Streamlit arayüzünü başlatmak için terminale şu komutu yazın:
 ```bash
 streamlit run streamlitv2.py

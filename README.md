@@ -1,4 +1,4 @@
-# 🎩 Görsel Miraslar: Osmanlı Serpuşları Sınıflandırma
+# Görsel Miraslar: Osmanlı Serpuşları Sınıflandırma
 
 Bu proje, PyTorch (ResNet101, ConvNeXt-Tiny) ve Streamlit kullanılarak geliştirilmiş, Osmanlı dönemine ait farklı serpuş (başlık) türlerini yapay zeka ile otomatik olarak tanıyan bir görüntü sınıflandırma (Image Classification) uygulamasıdır.
 

@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = 'best_model_resnet101_epoch_21_acc_83.33.pth'
+MODEL_PATH = 'best_model_convnext_tiny_epoch_XX_acc_XX.XX.pth'  # Eğitim sonrası doğru dosya adıyla değiştir
 CONTENT_FILE = 'serpus_content.json'
 COMMON_IMAGE = 'Serpuslar.jpg'
 CLASS_NAMES = ['Börk', 'Fes', 'Kadın', 'Katip', 'Sarma Sarıklı']
@@ -53,27 +53,42 @@ def load_model(model_path, num_classes):
     else:
         state_dict = checkpoint
 
-    has_dropout_fc = any(k.startswith('fc.0.') or k.startswith('fc.1.') for k in state_dict.keys())
+    architecture = checkpoint.get('architecture', 'resnet101') if isinstance(checkpoint, dict) else 'resnet101'
 
-    model = models.resnet101(weights=None)
+    if architecture == 'convnext_tiny':
+        model = models.convnext_tiny(weights=None)
+        in_features = model.classifier[2].in_features
 
-    if has_dropout_fc:
-        in_features = model.fc.in_features
-        model.fc = nn.Sequential(
-            nn.Dropout(p=0.5),
-            nn.Linear(in_features, num_classes)
-        )
-        logger.info("Yeni mimari algılandı (Dropout + Linear)")
+        has_dropout = any('classifier.2.0.' in k for k in state_dict.keys())
+        if has_dropout:
+            model.classifier[2] = nn.Sequential(
+                nn.Dropout(p=0.5),
+                nn.Linear(in_features, num_classes)
+            )
+            logger.info("ConvNeXt-Tiny mimari algılandı (Dropout + Linear)")
+        else:
+            model.classifier[2] = nn.Linear(in_features, num_classes)
+            logger.info("ConvNeXt-Tiny mimari algılandı (Linear)")
     else:
-        model.fc = nn.Linear(model.fc.in_features, num_classes)
-        logger.info("Eski mimari algılandı (Linear)")
+        model = models.resnet101(weights=None)
+        has_dropout_fc = any(k.startswith('fc.0.') or k.startswith('fc.1.') for k in state_dict.keys())
+        if has_dropout_fc:
+            in_features = model.fc.in_features
+            model.fc = nn.Sequential(
+                nn.Dropout(p=0.5),
+                nn.Linear(in_features, num_classes)
+            )
+            logger.info("ResNet-101 mimari algılandı (Dropout + Linear)")
+        else:
+            model.fc = nn.Linear(model.fc.in_features, num_classes)
+            logger.info("ResNet-101 mimari algılandı (Linear)")
 
     model.load_state_dict(state_dict)
     model = model.to(device)
     model.eval()
 
-    logger.info(f"Model başarıyla yüklendi: {model_path} → {device}")
-    return model, device
+    logger.info(f"Model başarıyla yüklendi: {model_path} → {device} ({architecture})")
+    return model, device, architecture
 
 
 def process_image(image):
@@ -102,11 +117,17 @@ st.set_page_config(
     page_icon="🏛️"
 )
 
+num_classes = len(CLASS_NAMES)
+model, device, architecture = load_model(MODEL_PATH, num_classes)
+content_data = load_content(CONTENT_FILE)
+
+arch_display = "ConvNeXt-Tiny" if architecture == "convnext_tiny" else "ResNet-101"
+
 st.sidebar.markdown("# 🏛️ Serpuş Analizi")
 st.sidebar.markdown("**BST İnovasyon**")
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    f"**Model:** `ResNet-101`\n\n"
+    f"**Model:** `{arch_display}`\n\n"
     f"**Sınıflar:** {len(CLASS_NAMES)}\n\n"
     f"**Unknown Threshold:** {UNKNOWN_THRESHOLD}"
 )
@@ -127,10 +148,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="title">Görsel Miraslar Serpuş</h1>', unsafe_allow_html=True)
-
-num_classes = len(CLASS_NAMES)
-model, device = load_model(MODEL_PATH, num_classes)
-content_data = load_content(CONTENT_FILE)
 
 uploaded_file = st.file_uploader(
     "Bir görüntü yükleyin",

@@ -1,6 +1,6 @@
 # 🎩 Görsel Miraslar: Osmanlı Serpuşları Sınıflandırma
 
-Bu proje, PyTorch (ResNet101) ve Streamlit kullanılarak geliştirilmiş, Osmanlı dönemine ait farklı serpuş (başlık) türlerini yapay zeka ile otomatik olarak tanıyan bir görüntü sınıflandırma (Image Classification) uygulamasıdır.
+Bu proje, PyTorch (ResNet101, ConvNeXt-Tiny) ve Streamlit kullanılarak geliştirilmiş, Osmanlı dönemine ait farklı serpuş (başlık) türlerini yapay zeka ile otomatik olarak tanıyan bir görüntü sınıflandırma (Image Classification) uygulamasıdır.
 
 ## 🌟 Özellikler
 - **Derin Öğrenme Modeli:** Transfer learning kullanılarak eğitilmiş ResNet101 mimarisi.
@@ -52,9 +52,11 @@ Projenin ana dizininde bir `data` klasörü oluşturun ve görsellerinizi sını
 GitHub dosya boyutu sınırları nedeniyle önceden eğitilmiş model ağırlıkları (`.pth` dosyası) bu depoda bulunmamaktadır.
 Arayüzü çalıştırmadan önce `resnet101.py` dosyasını kullanarak modeli kendi ortamınızda eğitmeniz gerekmektedir:
 
+GÜNCELLEME⚠️⚠️ Son eklenen ConvNeXt-Tiny modeli ile %93.06 accuracy elde edilmiştir. İsterseniz `convnext.py` dosyasını kullanarak modeli kendi ortamınızda eğitebilirsiniz.
+
 
 ### 5.Uygulamayı Güncelleyin
-Eğitim başarıyla tamamlandığında, ana dizinde best_model_resnet101_epoch_X_acc_Y.pth formatında bir dosya oluşacaktır. streamlitv2.py dosyasını açın ve MODEL_PATH değişkenini bu yeni dosyanın adıyla güncelleyin.
+Eğitim başarıyla tamamlandığında hangi modeli çalıştırdığınıza bağlı olarak ana dizinde best_model_resnet101_epoch_X_acc_Y.pth veya best_model_convnext_tiny_epoch_X_acc_Y.pth formatında bir dosya oluşacaktır. streamlitv2.py (ResNet için) veya streamlitv3.py (ConvNeXt için) dosyasını açın ve MODEL_PATH değişkenini bu yeni dosyanın adıyla güncelleyin.
 
 
 ### 6. Uygulamayı Başlatın

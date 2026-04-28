@@ -89,10 +89,11 @@ def validate(model, dataloader, criterion, device, unknown_threshold):
 
 
 def build_model(num_classes, device):
-    model = models.resnet101(weights=models.ResNet101_Weights.DEFAULT)
+    model = models.convnext_tiny(weights=models.ConvNeXt_Tiny_Weights.DEFAULT)
 
-    in_features = model.fc.in_features
-    model.fc = nn.Sequential(
+    in_features = model.classifier[2].in_features  # 768
+
+    model.classifier[2] = nn.Sequential(
         nn.Dropout(p=0.5),
         nn.Linear(in_features, num_classes)
     )
@@ -100,9 +101,19 @@ def build_model(num_classes, device):
     return model
 
 
+def get_classifier_params(model):
+    classifier_params = list(model.classifier.parameters())
+    return classifier_params
+
+
+def get_backbone_params(model):
+    backbone_params = list(model.features.parameters())
+    return backbone_params
+
+
 def cleanup_old_models(best_model_filename, model_dir='.'):
     for f in os.listdir(model_dir):
-        if f.startswith('best_model_resnet101_') and f.endswith('.pth') and f != best_model_filename:
+        if f.startswith('best_model_convnext_tiny_') and f.endswith('.pth') and f != best_model_filename:
             old_path = os.path.join(model_dir, f)
             os.remove(old_path)
             logger.info(f"Eski model silindi: {old_path}")
@@ -151,6 +162,10 @@ def main():
     class_names = train_dataset.classes
     logger.info(f"Sınıflar ({num_classes}): {class_names}")
 
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logger.info(f"Toplam parametre: {total_params:,} | Eğitilebilir: {trainable_params:,}")
+
     class_counts = [0] * num_classes
     for _, label in train_dataset.samples:
         class_counts[label] += 1
@@ -164,12 +179,12 @@ def main():
 
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    fc_params = list(model.parameters())[-2:]
-    backbone_params = [p for p in model.parameters() if not any(p is fp for fp in fc_params)]
+    backbone_params = get_backbone_params(model)
+    classifier_params = get_classifier_params(model)
 
     optimizer = optim.AdamW([
         {'params': backbone_params, 'lr': 1e-5},
-        {'params': fc_params, 'lr': 1e-3}
+        {'params': classifier_params, 'lr': 1e-3}
     ], weight_decay=0.01)
 
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=5, T_mult=2, eta_min=1e-7)
@@ -186,9 +201,9 @@ def main():
     best_model_filename = None
     epochs_without_improvement = 0
 
-    logger.info(f"Eğitim başlıyor: {NUM_EPOCHS} epoch, early stopping patience={EARLY_STOPPING_PATIENCE}")
+    logger.info(f"ConvNeXt-Tiny eğitim başlıyor: {NUM_EPOCHS} epoch, early stopping patience={EARLY_STOPPING_PATIENCE}")
 
-    logger.info(f"Aşama 1: İlk {FREEZE_EPOCHS} epoch — sadece FC katmanı eğitiliyor (backbone donduruldu)")
+    logger.info(f"Aşama 1: İlk {FREEZE_EPOCHS} epoch — sadece classifier katmanı eğitiliyor (backbone donduruldu)")
     for param in backbone_params:
         param.requires_grad = False
 
@@ -227,7 +242,7 @@ def main():
             best_loss = validation_loss
             epochs_without_improvement = 0
 
-            new_filename = f"best_model_resnet101_epoch_{epoch + 1}_acc_{best_accuracy:.2f}.pth"
+            new_filename = f"best_model_convnext_tiny_epoch_{epoch + 1}_acc_{best_accuracy:.2f}.pth"
             torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
@@ -238,6 +253,7 @@ def main():
                 'class_names': class_names,
                 'num_classes': num_classes,
                 'unknown_threshold': UNKNOWN_THRESHOLD,
+                'architecture': 'convnext_tiny',
             }, new_filename)
             print(f"  💾 Model kaydedildi → {new_filename}", flush=True)
 
@@ -255,7 +271,7 @@ def main():
 
     print(flush=True)
     print("╔" + "═" * 88 + "╗", flush=True)
-    print("║" + "  EĞİTİM TAMAMLANDI".center(88) + "║", flush=True)
+    print("║" + "  CONVNeXT-TINY EĞİTİM TAMAMLANDI".center(88) + "║", flush=True)
     print("╠" + "═" * 88 + "╣", flush=True)
     print(f"║  En iyi doğruluk:  {best_accuracy:.2f}%".ljust(89) + "║", flush=True)
     print(f"║  En düşük loss:    {best_loss:.4f}".ljust(89) + "║", flush=True)

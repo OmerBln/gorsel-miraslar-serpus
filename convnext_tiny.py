@@ -23,6 +23,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, scaler, device, epo
     running_loss = 0.0
     correct = 0
     total = 0
+    use_amp = device.type == 'cuda'
 
     progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{num_epochs} [Train]", leave=True, ncols=120)
 
@@ -31,17 +32,20 @@ def train_one_epoch(model, dataloader, criterion, optimizer, scaler, device, epo
 
         optimizer.zero_grad(set_to_none=True)
 
-        with autocast('cuda'):
+        with autocast('cuda', enabled=use_amp):
             outputs = model(inputs)
             loss = criterion(outputs, labels)
 
-        scaler.scale(loss).backward()
-
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
-        scaler.step(optimizer)
-        scaler.update()
+        if use_amp:
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
 
         running_loss += loss.item()
         _, predicted = torch.max(outputs, 1)
@@ -73,16 +77,17 @@ def validate(model, dataloader, criterion, device, unknown_threshold):
 
             probabilities = F.softmax(outputs.float(), dim=1)
             max_probs, predicted = torch.max(probabilities, 1)
-            
+
             unknown_mask = max_probs < unknown_threshold
-            predicted[unknown_mask] = -1
+            known_mask = ~unknown_mask
 
             running_loss += loss.item()
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            correct += (predicted[known_mask] == labels[known_mask]).sum().item()
             unknown_count += unknown_mask.sum().item()
 
-    accuracy = 100 * correct / total
+    known_total = total - unknown_count
+    accuracy = 100 * correct / known_total if known_total > 0 else 0.0
     validation_loss = running_loss / len(dataloader)
 
     return validation_loss, accuracy, unknown_count
@@ -189,7 +194,8 @@ def main():
 
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=5, T_mult=2, eta_min=1e-7)
 
-    scaler = GradScaler()
+    use_amp = device.type == 'cuda'
+    scaler = GradScaler('cuda', enabled=use_amp)
 
     NUM_EPOCHS = 30
     UNKNOWN_THRESHOLD = 0.5

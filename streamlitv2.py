@@ -10,9 +10,9 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = 'best_model_resnet101_epoch_21_acc_83.33.pth'
+MODEL_PATH = 'best_model_resnet101_epoch_28_acc_77.78.pth'
 CONTENT_FILE = 'serpus_content.json'
-COMMON_IMAGE = 'Serpuslar.jpg'
+COMMON_IMAGE = 'serpuslar.jpg'
 CLASS_NAMES = ['Börk', 'Fes', 'Kadın', 'Katip', 'Sarma Sarıklı']
 UNKNOWN_THRESHOLD = 0.75
 
@@ -23,6 +23,7 @@ INFERENCE_TRANSFORM = transforms.Compose([
 ])
 
 
+@st.cache_data
 def load_content(content_path):
     try:
         with open(content_path, 'r', encoding='utf-8') as f:

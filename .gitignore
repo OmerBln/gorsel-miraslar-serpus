@@ -11,7 +11,6 @@ __pycache__/
 
 *.pth
 *.pt
-best_model_resnet101_epoch_28_acc_77.78.pth
 
 
 data/
